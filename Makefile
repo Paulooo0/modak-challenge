@@ -7,6 +7,20 @@ run:
 run-d:
 	docker compose up -d --build
 
+test: test-run test-cover
+
+test-run:
+	go test ./... -coverpkg=./... -coverprofile=coverage.out
+
+test-cover:
+	grep -v "cmd/server" coverage.out | \
+	grep -v "internal/adapters/db/sqlc" | \
+	grep -v "internal/adapters/http/server.go" | \
+	grep -v "internal/adapters/http/v1/routes.go" | \
+	grep -v "_router.go" | \
+	grep -v "internal/config/config.go" > coverage.filtered.out
+	go tool cover -html=coverage.filtered.out
+
 migrate-create:
 	docker run --rm \
 		--user $(shell id -u):$(shell id -g) \

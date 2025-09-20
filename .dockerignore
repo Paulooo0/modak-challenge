@@ -7,3 +7,4 @@ compose.yml
 Dockerfile
 Makefile
 README.md
+*_test.go
