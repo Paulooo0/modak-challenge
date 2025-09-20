@@ -1,0 +1,36 @@
+services:
+  db:
+    image: ${DB_IMAGE:-postgres:16.8-alpine3.20}
+    container_name: ${DB_HOST:-modak-challenge-db}
+    environment:
+      POSTGRES_USER: ${DB_USER:-dev}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev}
+      POSTGRES_DB: ${DB_NAME:-ModakChallengeDB}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - ${DB_VOLUME:-./data}:/var/lib/postgresql/data
+    networks:
+      - modak-challenge-net
+
+  pgadmin:
+    image: ${PGADMIN_IMAGE:-dpage/pgadmin4:9.4}
+    container_name: ${PGADMIN_HOST:-modak-challenge-pgadmin}
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@modakchallenge.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-dev}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - db
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - modak-challenge-net
+
+networks:
+  modak-challenge-net:
+    driver: bridge
+
+volumes:
+  pgadmin_data:
