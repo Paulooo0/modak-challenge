@@ -10,7 +10,7 @@ import (
 	"github.com/Paulooo0/modak-challenge/internal/adapters/http"
 	"github.com/Paulooo0/modak-challenge/internal/config"
 	"github.com/Paulooo0/modak-challenge/internal/domain/entity"
-	"github.com/Paulooo0/modak-challenge/internal/domain/useCase"
+	"github.com/Paulooo0/modak-challenge/internal/domain/usecase"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -27,7 +27,7 @@ func main() {
 	repo := db.NewNotificationRepository(q)
 	gateway := gateway.NewFakeGateway()
 
-	uc := useCase.NewNotificationUseCase(repo, gateway, entity.DefaultRateLimits)
+	uc := usecase.NewNotificationUseCase(repo, gateway, entity.DefaultRateLimits)
 
 	r := http.NewRouter(uc)
 

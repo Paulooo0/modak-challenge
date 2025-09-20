@@ -5,16 +5,16 @@ import (
 	"net/http"
 
 	"github.com/Paulooo0/modak-challenge/internal/domain/entity"
-	"github.com/Paulooo0/modak-challenge/internal/domain/useCase"
+	"github.com/Paulooo0/modak-challenge/internal/domain/usecase"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type NotificationHandler struct {
-	uc *useCase.NotificationUseCase
+	uc *usecase.NotificationUseCase
 }
 
-func NewNotificationHandler(uc *useCase.NotificationUseCase) *NotificationHandler {
+func NewNotificationHandler(uc *usecase.NotificationUseCase) *NotificationHandler {
 	return &NotificationHandler{uc: uc}
 }
 
@@ -39,11 +39,11 @@ func (h *NotificationHandler) SendNotification(c *gin.Context) {
 	err := h.uc.Send(context.Background(), n)
 	if err != nil {
 		switch err {
-		case useCase.ErrRateLimitExceeded:
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": useCase.ErrRateLimitExceeded.Error()})
+		case usecase.ErrRateLimitExceeded:
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": usecase.ErrRateLimitExceeded.Error()})
 			return
-		case useCase.ErrInvalidNotification:
-			c.JSON(http.StatusBadRequest, gin.H{"error": useCase.ErrInvalidNotification.Error()})
+		case usecase.ErrInvalidNotification:
+			c.JSON(http.StatusBadRequest, gin.H{"error": usecase.ErrInvalidNotification.Error()})
 			return
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
