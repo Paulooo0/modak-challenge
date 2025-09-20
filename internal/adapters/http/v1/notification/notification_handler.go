@@ -38,12 +38,17 @@ func (h *NotificationHandler) SendNotification(c *gin.Context) {
 
 	err := h.uc.Send(context.Background(), n)
 	if err != nil {
-		if err == useCase.ErrRateLimitExceeded {
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": err.Error()})
+		switch err {
+		case useCase.ErrRateLimitExceeded:
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": useCase.ErrRateLimitExceeded.Error()})
+			return
+		case useCase.ErrInvalidNotification:
+			c.JSON(http.StatusBadRequest, gin.H{"error": useCase.ErrInvalidNotification.Error()})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"status": "sent"})

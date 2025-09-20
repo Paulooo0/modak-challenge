@@ -27,12 +27,15 @@ func NewNotificationUseCase(
 	}
 }
 
-var ErrRateLimitExceeded = errors.New("rate limit exceeded")
+var (
+	ErrRateLimitExceeded   = errors.New("rate limit exceeded")
+	ErrInvalidNotification = errors.New("invalid notification")
+)
 
 func (s *NotificationUseCase) Send(ctx context.Context, n entity.Notification) error {
 	rule, ok := s.rules[n.Type]
 	if !ok {
-		return errors.New("unknown notification type")
+		return ErrInvalidNotification
 	}
 
 	since := time.Now().Add(-rule.Interval)
