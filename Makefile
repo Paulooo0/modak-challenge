@@ -69,3 +69,6 @@ sqlc-generate:
 
 migrate-sync: migrate-up schema-dump sqlc-generate
 	@echo "✅ Migration and SQLC sync completed successfully!"
+
+swagger-generate:
+	docker run --rm -v $(PWD):/src -w /src -v swag-go-cache:/go golang:1.23-alpine sh -c 'apk add --no-cache git >/dev/null && go install github.com/swaggo/swag/cmd/swag@v1.16.4 && /go/bin/swag init -g cmd/server/main.go -o docs'

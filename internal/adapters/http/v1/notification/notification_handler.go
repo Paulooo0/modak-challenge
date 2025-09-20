@@ -20,14 +20,20 @@ func NewNotificationHandler(uc *usecase.NotificationUseCase) *NotificationHandle
 	return &NotificationHandler{uc: uc}
 }
 
+// SendNotification godoc
+// @Summary Send a notification
+// @Description Sends a notification to a user respecting per-type rate limits
+// @Tags notifications
+// @Param request body SendNotificationRequest true "Notification payload"
+// @Success 201 {object} StatusResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 429 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /v1/notifications/send [post]
 func (h *NotificationHandler) SendNotification(c *gin.Context) {
-	var req struct {
-		UserID  uuid.UUID `json:"user_id" binding:"required"`
-		Type    string    `json:"type" binding:"required"`
-		Message string    `json:"message" binding:"required"`
-	}
+	var req SendNotificationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -43,16 +49,16 @@ func (h *NotificationHandler) SendNotification(c *gin.Context) {
 		log.Println(err)
 		switch err {
 		case errs.ErrRateLimitExceeded:
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": errs.ErrRateLimitExceeded.Error()})
+			c.JSON(http.StatusTooManyRequests, ErrorResponse{Error: errs.ErrRateLimitExceeded.Error()})
 			return
 		case errs.ErrInvalidNotification:
-			c.JSON(http.StatusBadRequest, gin.H{"error": errs.ErrInvalidNotification.Error()})
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: errs.ErrInvalidNotification.Error()})
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 			return
 		}
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": "sent"})
+	c.JSON(http.StatusCreated, StatusResponse{Status: "sent"})
 }

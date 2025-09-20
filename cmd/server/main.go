@@ -12,8 +12,12 @@ import (
 	"github.com/Paulooo0/modak-challenge/internal/domain/entity"
 	"github.com/Paulooo0/modak-challenge/internal/domain/usecase"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	_ "github.com/Paulooo0/modak-challenge/docs"
 )
 
+// @title Modak Challenge API
+// @version 1.0
 func main() {
 	cfg := config.Load()
 
