@@ -10,11 +10,18 @@ import (
 	"github.com/google/uuid"
 )
 
-type NotificationRepository struct {
-	q *sqlc.Queries
+// notificationsQuerier is a minimal interface implemented by *sqlc.Queries
+// that allows the repository to be tested with simple mocks.
+type notificationsQuerier interface {
+	CreateNotification(ctx context.Context, arg sqlc.CreateNotificationParams) (sqlc.Notification, error)
+	CountNotificationsInTimeWindow(ctx context.Context, arg sqlc.CountNotificationsInTimeWindowParams) (int64, error)
 }
 
-func NewNotificationRepository(q *sqlc.Queries) ports.NotificationRepository {
+type NotificationRepository struct {
+	q notificationsQuerier
+}
+
+func NewNotificationRepository(q notificationsQuerier) ports.NotificationRepository {
 	return &NotificationRepository{q: q}
 }
 
