@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/Paulooo0/modak-challenge/internal/domain/entity"
@@ -38,6 +39,7 @@ func (h *NotificationHandler) SendNotification(c *gin.Context) {
 
 	err := h.uc.Send(context.Background(), n)
 	if err != nil {
+		log.Println(err)
 		switch err {
 		case usecase.ErrRateLimitExceeded:
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": usecase.ErrRateLimitExceeded.Error()})

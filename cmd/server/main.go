@@ -18,7 +18,7 @@ func main() {
 	cfg := config.Load()
 
 	pool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
-	if err != nil {
+	if err != nil || cfg.DatabaseURL == "" {
 		log.Fatalf("failed to connect to db: %v", err)
 	}
 	defer pool.Close()

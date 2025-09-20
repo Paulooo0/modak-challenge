@@ -1,0 +1,9 @@
+.data/
+db/
+.env.example
+.git
+.gitignore
+compose.yml
+Dockerfile
+Makefile
+README.md

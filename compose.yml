@@ -1,4 +1,15 @@
 services:
+  app:
+    container_name: ${APP_HOST:-modak-challenge-app}
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      - db
+    networks:
+      - modak-challenge-net
   db:
     image: ${DB_IMAGE:-postgres:16.8-alpine3.20}
     container_name: ${DB_HOST:-modak-challenge-db}
