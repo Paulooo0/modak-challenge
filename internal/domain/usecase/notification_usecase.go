@@ -2,9 +2,9 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"time"
 
+	"github.com/Paulooo0/modak-challenge/internal/config/errs"
 	"github.com/Paulooo0/modak-challenge/internal/domain/entity"
 	"github.com/Paulooo0/modak-challenge/internal/ports"
 )
@@ -27,15 +27,10 @@ func NewNotificationUseCase(
 	}
 }
 
-var (
-	ErrRateLimitExceeded   = errors.New("rate limit exceeded")
-	ErrInvalidNotification = errors.New("invalid notification")
-)
-
 func (s *NotificationUseCase) Send(ctx context.Context, n entity.Notification) error {
 	rule, ok := s.rules[n.Type]
 	if !ok {
-		return ErrInvalidNotification
+		return errs.ErrInvalidNotification
 	}
 
 	since := time.Now().Add(-rule.Interval)
@@ -45,7 +40,7 @@ func (s *NotificationUseCase) Send(ctx context.Context, n entity.Notification) e
 	}
 
 	if count >= rule.Limit {
-		return ErrRateLimitExceeded
+		return errs.ErrRateLimitExceeded
 	}
 
 	saved, err := s.repo.Create(ctx, n)

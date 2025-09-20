@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Paulooo0/modak-challenge/internal/config/errs"
 	"github.com/Paulooo0/modak-challenge/internal/domain/entity"
 	"github.com/Paulooo0/modak-challenge/internal/domain/usecase"
 	"github.com/gin-gonic/gin"
@@ -41,11 +42,11 @@ func (h *NotificationHandler) SendNotification(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 		switch err {
-		case usecase.ErrRateLimitExceeded:
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": usecase.ErrRateLimitExceeded.Error()})
+		case errs.ErrRateLimitExceeded:
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": errs.ErrRateLimitExceeded.Error()})
 			return
-		case usecase.ErrInvalidNotification:
-			c.JSON(http.StatusBadRequest, gin.H{"error": usecase.ErrInvalidNotification.Error()})
+		case errs.ErrInvalidNotification:
+			c.JSON(http.StatusBadRequest, gin.H{"error": errs.ErrInvalidNotification.Error()})
 			return
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
