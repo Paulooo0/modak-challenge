@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/Paulooo0/modak-challenge/internal/config/errs"
 	"github.com/Paulooo0/modak-challenge/internal/domain/entity"
 	"github.com/Paulooo0/modak-challenge/internal/domain/usecase"
 )
@@ -40,18 +41,19 @@ func (m *MockGateway) Send(n entity.Notification) error {
 func TestSendNotificationSuccess(t *testing.T) {
 	repo := new(MockRepo)
 	gw := new(MockGateway)
+	userID := uuid.New()
 
-	repo.On("CountInTimeWindow", mock.Anything, uuid.New(), "status", mock.Anything).Return(0, nil)
-	created := entity.Notification{UserID: uuid.New(), Type: "status", Message: "hello"}
+	repo.On("CountInTimeWindow", mock.Anything, userID, "status", mock.AnythingOfType("time.Time")).Return(0, nil)
+	created := entity.Notification{UserID: userID, Type: "status", Message: "hello"}
 	repo.On("Create", mock.Anything, mock.AnythingOfType("entity.Notification")).Return(created, nil)
 	gw.On("Send", mock.MatchedBy(func(n entity.Notification) bool {
-		return n.UserID == uuid.New() && n.Type == "status" && n.Message == "hello"
+		return n.UserID == userID && n.Type == "status" && n.Message == "hello"
 	})).Return(nil)
 
 	svc := usecase.NewNotificationUseCase(repo, gw, entity.DefaultRateLimits)
 
 	err := svc.Send(context.Background(), entity.Notification{
-		UserID:  uuid.New(),
+		UserID:  userID,
 		Type:    "status",
 		Message: "hello",
 	})
@@ -64,19 +66,20 @@ func TestSendNotificationSuccess(t *testing.T) {
 func TestNotificationRateLimitExceeded(t *testing.T) {
 	repo := new(MockRepo)
 	gw := new(MockGateway)
+	userID := uuid.New()
 
-	repo.On("CountInTimeWindow", mock.Anything, "user1", "status", mock.Anything).Return(2, nil)
+	repo.On("CountInTimeWindow", mock.Anything, userID, "status", mock.Anything).Return(2, nil)
 
 	svc := usecase.NewNotificationUseCase(repo, gw, entity.DefaultRateLimits)
 
 	err := svc.Send(context.Background(), entity.Notification{
-		UserID:  uuid.New(),
+		UserID:  userID,
 		Type:    "status",
 		Message: "hello",
 	})
 
 	assert.Error(t, err)
-	assert.True(t, errors.Is(err, usecase.ErrRateLimitExceeded))
+	assert.True(t, errors.Is(err, errs.ErrRateLimitExceeded))
 	repo.AssertExpectations(t)
 	gw.AssertNotCalled(t, "Send", mock.Anything)
 }
@@ -84,10 +87,11 @@ func TestNotificationRateLimitExceeded(t *testing.T) {
 func TestSendNotificationGatewayError(t *testing.T) {
 	repo := new(MockRepo)
 	gw := new(MockGateway)
+	userID := uuid.New()
 
-	repo.On("CountInTimeWindow", mock.Anything, "user1", "status", mock.Anything).Return(0, nil)
+	repo.On("CountInTimeWindow", mock.Anything, userID, "status", mock.Anything).Return(0, nil)
 
-	created := entity.Notification{UserID: uuid.New(), Type: "status", Message: "hello"}
+	created := entity.Notification{UserID: userID, Type: "status", Message: "hello"}
 	repo.On("Create", mock.Anything, mock.AnythingOfType("entity.Notification")).Return(created, nil)
 
 	gw.On("Send", created).Return(errors.New("gateway down"))
@@ -95,7 +99,7 @@ func TestSendNotificationGatewayError(t *testing.T) {
 	svc := usecase.NewNotificationUseCase(repo, gw, entity.DefaultRateLimits)
 
 	err := svc.Send(context.Background(), entity.Notification{
-		UserID:  uuid.New(),
+		UserID:  userID,
 		Type:    "status",
 		Message: "hello",
 	})
