@@ -8,7 +8,7 @@ import (
 
 type Notification struct {
 	ID        uuid.UUID
-	UserID    string
+	UserID    uuid.UUID
 	Type      string
 	Message   string
 	CreatedAt time.Time

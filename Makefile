@@ -34,6 +34,13 @@ migrate-force:
 		-path=/migrations \
 		-database ${DB_URL} force $(VERSION)
 
+migrate-version:
+	docker run --rm \
+		--network=modak-challenge_modak-challenge-net \
+		-v $(PWD)/db/migrations:/migrations migrate/migrate \
+		-path=/migrations \
+		-database ${DB_URL} version
+
 schema-dump:
 	docker run --rm \
 		--network=modak-challenge_modak-challenge-net \

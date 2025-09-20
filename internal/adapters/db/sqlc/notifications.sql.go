@@ -8,6 +8,8 @@ package sqlc
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const countNotificationsInTimeWindow = `-- name: CountNotificationsInTimeWindow :one
@@ -19,7 +21,7 @@ WHERE user_id = $1
 `
 
 type CountNotificationsInTimeWindowParams struct {
-	UserID    string
+	UserID    uuid.UUID
 	Type      string
 	CreatedAt time.Time
 }
@@ -38,7 +40,7 @@ RETURNING id, user_id, type, message, created_at
 `
 
 type CreateNotificationParams struct {
-	UserID  string
+	UserID  uuid.UUID
 	Type    string
 	Message string
 }

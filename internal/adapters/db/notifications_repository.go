@@ -7,6 +7,7 @@ import (
 	"github.com/Paulooo0/modak-challenge/internal/adapters/db/sqlc"
 	"github.com/Paulooo0/modak-challenge/internal/domain/entity"
 	"github.com/Paulooo0/modak-challenge/internal/ports"
+	"github.com/google/uuid"
 )
 
 type NotificationRepository struct {
@@ -36,7 +37,7 @@ func (r *NotificationRepository) Create(ctx context.Context, n entity.Notificati
 	}, nil
 }
 
-func (r *NotificationRepository) CountInTimeWindow(ctx context.Context, userID, notifType string, since time.Time) (int, error) {
+func (r *NotificationRepository) CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType string, since time.Time) (int, error) {
 	count, err := r.q.CountNotificationsInTimeWindow(ctx, sqlc.CountNotificationsInTimeWindowParams{
 		UserID:    userID,
 		Type:      notifType,

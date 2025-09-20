@@ -26,7 +26,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.notifications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    user_id text NOT NULL,
+    user_id uuid NOT NULL,
     type text NOT NULL,
     message text NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL

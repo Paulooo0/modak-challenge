@@ -20,9 +20,9 @@ func NewNotificationHandler(uc *usecase.NotificationUseCase) *NotificationHandle
 
 func (h *NotificationHandler) SendNotification(c *gin.Context) {
 	var req struct {
-		UserID  string `json:"user_id" binding:"required"`
-		Type    string `json:"type" binding:"required"`
-		Message string `json:"message" binding:"required"`
+		UserID  uuid.UUID `json:"user_id" binding:"required"`
+		Type    string    `json:"type" binding:"required"`
+		Message string    `json:"message" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
