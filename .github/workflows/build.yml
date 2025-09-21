@@ -32,6 +32,9 @@ jobs:
         run: |
           git diff --exit-code || (echo "sqlc generated code is out of sync" && exit 1)
 
+      - name: Run tests
+        run: go test ./... -v
+
   build:
     runs-on: ubuntu-latest
 
