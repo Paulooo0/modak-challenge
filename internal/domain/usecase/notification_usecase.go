@@ -12,13 +12,13 @@ import (
 type NotificationUseCase struct {
 	repo    ports.NotificationRepository
 	gateway ports.NotificationGateway
-	rules   map[string]entity.RateLimit
+	rules   map[entity.NotificationType]entity.RateLimit
 }
 
 func NewNotificationUseCase(
 	repo ports.NotificationRepository,
 	gateway ports.NotificationGateway,
-	rules map[string]entity.RateLimit,
+	rules map[entity.NotificationType]entity.RateLimit,
 ) *NotificationUseCase {
 	return &NotificationUseCase{
 		repo:    repo,
@@ -28,7 +28,7 @@ func NewNotificationUseCase(
 }
 
 func (s *NotificationUseCase) Send(ctx context.Context, n entity.Notification) error {
-	rule, ok := s.rules[n.Type]
+	rule, ok := s.rules[entity.NotificationType(n.Type)]
 	if !ok {
 		return errs.ErrInvalidNotification
 	}

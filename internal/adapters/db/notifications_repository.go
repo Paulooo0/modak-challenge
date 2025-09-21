@@ -28,7 +28,7 @@ func NewNotificationRepository(q notificationsQuerier) ports.NotificationReposit
 func (r *NotificationRepository) Create(ctx context.Context, n entity.Notification) (entity.Notification, error) {
 	row, err := r.q.CreateNotification(ctx, sqlc.CreateNotificationParams{
 		UserID:  n.UserID,
-		Type:    n.Type,
+		Type:    string(n.Type),
 		Message: n.Message,
 	})
 	if err != nil {
@@ -38,16 +38,16 @@ func (r *NotificationRepository) Create(ctx context.Context, n entity.Notificati
 	return entity.Notification{
 		ID:        row.ID,
 		UserID:    row.UserID,
-		Type:      row.Type,
+		Type:      entity.NotificationType(row.Type),
 		Message:   row.Message,
 		CreatedAt: row.CreatedAt,
 	}, nil
 }
 
-func (r *NotificationRepository) CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType string, since time.Time) (int, error) {
+func (r *NotificationRepository) CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType entity.NotificationType, since time.Time) (int, error) {
 	count, err := r.q.CountNotificationsInTimeWindow(ctx, sqlc.CountNotificationsInTimeWindowParams{
 		UserID:    userID,
-		Type:      notifType,
+		Type:      string(notifType),
 		CreatedAt: since,
 	})
 	if err != nil {

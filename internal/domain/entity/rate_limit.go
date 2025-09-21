@@ -7,8 +7,8 @@ type RateLimit struct {
 	Interval time.Duration
 }
 
-var DefaultRateLimits = map[string]RateLimit{
-	"status":    {Limit: 2, Interval: time.Minute},
-	"news":      {Limit: 1, Interval: 24 * time.Hour},
-	"marketing": {Limit: 3, Interval: time.Hour},
+var DefaultRateLimits = map[NotificationType]RateLimit{
+	Status:    {Limit: 2, Interval: time.Minute},
+	News:      {Limit: 1, Interval: 24 * time.Hour},
+	Marketing: {Limit: 3, Interval: time.Hour},
 }

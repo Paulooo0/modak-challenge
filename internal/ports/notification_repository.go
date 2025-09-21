@@ -10,5 +10,5 @@ import (
 
 type NotificationRepository interface {
 	Create(ctx context.Context, n entity.Notification) (entity.Notification, error)
-	CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType string, window time.Time) (int, error)
+	CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType entity.NotificationType, window time.Time) (int, error)
 }

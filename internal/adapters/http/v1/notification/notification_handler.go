@@ -1,7 +1,6 @@
 package notification
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -36,15 +35,19 @@ func (h *NotificationHandler) SendNotification(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
+	if !entity.IsValidNotificationType(entity.NotificationType(req.Type)) {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: errs.ErrInvalidNotification.Error()})
+		return
+	}
 
 	n := entity.Notification{
 		ID:      uuid.New(),
 		UserID:  req.UserID,
-		Type:    req.Type,
+		Type:    entity.NotificationType(req.Type),
 		Message: req.Message,
 	}
 
-	err := h.uc.Send(context.Background(), n)
+	err := h.uc.Send(c.Request.Context(), n)
 	if err != nil {
 		log.Println(err)
 		switch err {

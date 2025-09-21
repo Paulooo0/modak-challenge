@@ -1,6 +1,6 @@
 # Modak Challenge - Notification API
 
-Lightweight, production-ready Notification API built with Go, Gin, and PostgreSQL. It supports per-user, per-type rate limiting and persists notification events. The project follows a clean, hexagonal architecture (ports and adapters), is fully containerized with Docker, and ships with Swagger docs, SQLC for type-safe queries, and Make targets for common tasks.
+Notification API built with Go, Gin, and PostgreSQL. It supports per-user, per-type rate limiting and persists notification events. The project follows a clean, hexagonal architecture (ports and adapters), is fully containerized with Docker, and ships with Swagger docs, SQLC for type-safe queries, and Make targets for common tasks.
 
 ## Key Features
 
