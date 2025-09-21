@@ -221,6 +221,7 @@ The coverage visualization step (`make test-cover`) filters out non-essential fi
 GitHub Actions workflow (`.github/workflows/build.yml`):
 
 - **sqlc job**: Generates SQLC code using Docker and fails if changes are not committed.
+- **test job**: Runs tests and fails if any test not passing.
 - **build job**: Builds and pushes Docker images to Docker Hub as `latest` and `SHA` tags.
 
 To push images, set the `DOCKERHUB_TOKEN` repository secret. The username and image name are configured via workflow env vars (`DOCKERHUB_USERNAME=paulooo`, `IMAGE_NAME=modak-challenge`). Link to the dockerhub repository [here](https://hub.docker.com/repository/docker/paulooo/modak-challenge).
