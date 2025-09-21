@@ -3,8 +3,8 @@ package notification
 import (
 	"bytes"
 	"context"
-	"errors"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -25,7 +25,7 @@ func (m *MockRepo) Create(ctx context.Context, n entity.Notification) (entity.No
 	return args.Get(0).(entity.Notification), args.Error(1)
 }
 
-func (m *MockRepo) CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType string, since time.Time) (int, error) {
+func (m *MockRepo) CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType entity.NotificationType, since time.Time) (int, error) {
 	args := m.Called(ctx, userID, notifType, since)
 	return args.Get(0).(int), args.Error(1)
 }
@@ -37,7 +37,7 @@ func (m *MockGateway) Send(n entity.Notification) error {
 	return args.Error(0)
 }
 
-func buildHandler(repo *MockRepo, gw *MockGateway, rules map[string]entity.RateLimit) *NotificationHandler {
+func buildHandler(repo *MockRepo, gw *MockGateway, rules map[entity.NotificationType]entity.RateLimit) *NotificationHandler {
 	uc := usecase.NewNotificationUseCase(repo, gw, rules)
 	return NewNotificationHandler(uc)
 }
@@ -68,11 +68,11 @@ func TestSendNotificationSuccess(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := new(MockRepo)
 	gw := new(MockGateway)
-	rules := map[string]entity.RateLimit{"email": {Limit: 10, Interval: time.Minute}}
+	rules := map[entity.NotificationType]entity.RateLimit{entity.Status: {Limit: 10, Interval: time.Minute}}
 	h := buildHandler(repo, gw, rules)
 
 	var captured entity.Notification
-	repo.On("CountInTimeWindow", mock.Anything, mock.AnythingOfType("uuid.UUID"), "email", mock.AnythingOfType("time.Time")).Return(0, nil)
+	repo.On("CountInTimeWindow", mock.Anything, mock.AnythingOfType("uuid.UUID"), entity.Status, mock.AnythingOfType("time.Time")).Return(0, nil)
 	repo.On("Create", mock.Anything, mock.MatchedBy(func(n entity.Notification) bool { captured = n; return true })).Return(captured, nil)
 	gw.On("Send", mock.AnythingOfType("entity.Notification")).Return(nil)
 
@@ -80,7 +80,7 @@ func TestSendNotificationSuccess(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.POST(pathSend, h.SendNotification)
 
-	req := newJSONRequest(t, http.MethodPost, pathSend, sendPayload{UserID: uuid.New(), Type: "email", Message: "hello"})
+	req := newJSONRequest(t, http.MethodPost, pathSend, sendPayload{UserID: uuid.New(), Type: string(entity.Status), Message: "hello"})
 
 	r.ServeHTTP(w, req)
 	require.Equal(t, http.StatusCreated, w.Code)
@@ -93,16 +93,16 @@ func TestSendNotificationRateLimited(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := new(MockRepo)
 	gw := new(MockGateway)
-	rules := map[string]entity.RateLimit{"email": {Limit: 1, Interval: time.Minute}}
+	rules := map[entity.NotificationType]entity.RateLimit{entity.Status: {Limit: 1, Interval: time.Minute}}
 	h := buildHandler(repo, gw, rules)
 
-	repo.On("CountInTimeWindow", mock.Anything, mock.AnythingOfType("uuid.UUID"), "email", mock.AnythingOfType("time.Time")).Return(1, nil)
+	repo.On("CountInTimeWindow", mock.Anything, mock.AnythingOfType("uuid.UUID"), entity.Status, mock.AnythingOfType("time.Time")).Return(1, nil)
 
 	r := gin.New()
 	w := httptest.NewRecorder()
 	r.POST(pathSend, h.SendNotification)
 
-	req := newJSONRequest(t, http.MethodPost, pathSend, sendPayload{UserID: uuid.New(), Type: "email", Message: "hello"})
+	req := newJSONRequest(t, http.MethodPost, pathSend, sendPayload{UserID: uuid.New(), Type: string(entity.Status), Message: "hello"})
 
 	r.ServeHTTP(w, req)
 	require.Equal(t, http.StatusTooManyRequests, w.Code)
@@ -112,14 +112,14 @@ func TestSendNotificationInvalidType(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := new(MockRepo)
 	gw := new(MockGateway)
-	rules := map[string]entity.RateLimit{"email": {Limit: 10, Interval: time.Minute}}
+	rules := map[entity.NotificationType]entity.RateLimit{"invalidType": {Limit: 10, Interval: time.Minute}}
 	h := buildHandler(repo, gw, rules)
 
 	r := gin.New()
 	w := httptest.NewRecorder()
 	r.POST(pathSend, h.SendNotification)
 
-	req := newJSONRequest(t, http.MethodPost, pathSend, sendPayload{UserID: uuid.New(), Type: "push", Message: "hello"})
+	req := newJSONRequest(t, http.MethodPost, pathSend, sendPayload{UserID: uuid.New(), Type: "invalidType", Message: "hello"})
 
 	r.ServeHTTP(w, req)
 	require.Equal(t, http.StatusBadRequest, w.Code)
@@ -129,18 +129,18 @@ func TestSendNotificationInternalError(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	repo := new(MockRepo)
 	gw := new(MockGateway)
-	rules := map[string]entity.RateLimit{"email": {Limit: 10, Interval: time.Minute}}
+	rules := map[entity.NotificationType]entity.RateLimit{entity.Status: {Limit: 10, Interval: time.Minute}}
 	h := buildHandler(repo, gw, rules)
 
 	boom := errors.New("db error")
-	repo.On("CountInTimeWindow", mock.Anything, mock.AnythingOfType("uuid.UUID"), "email", mock.AnythingOfType("time.Time")).Return(0, nil)
+	repo.On("CountInTimeWindow", mock.Anything, mock.AnythingOfType("uuid.UUID"), entity.Status, mock.AnythingOfType("time.Time")).Return(0, nil)
 	repo.On("Create", mock.Anything, mock.AnythingOfType("entity.Notification")).Return(entity.Notification{}, boom)
 
 	r := gin.New()
 	w := httptest.NewRecorder()
 	r.POST(pathSend, h.SendNotification)
 
-	req := newJSONRequest(t, http.MethodPost, pathSend, sendPayload{UserID: uuid.New(), Type: "email", Message: "hello"})
+	req := newJSONRequest(t, http.MethodPost, pathSend, sendPayload{UserID: uuid.New(), Type: string(entity.Status), Message: "hello"})
 
 	r.ServeHTTP(w, req)
 	require.Equal(t, http.StatusInternalServerError, w.Code)

@@ -31,19 +31,19 @@ func TestNotificationRepositoryCreate(t *testing.T) {
 	mq := new(mockQueries)
 	repo := NewNotificationRepository(mq)
 
-	input := entity.Notification{UserID: uid, Type: "status", Message: "test"}
-	out := sqlc.Notification{ID: uuid.New(), UserID: uid, Type: "status", Message: "test", CreatedAt: createdAt}
+	input := entity.Notification{UserID: uid, Type: entity.Status, Message: "test"}
+	out := sqlc.Notification{ID: uuid.New(), UserID: uid, Type: string(entity.Status), Message: "test", CreatedAt: createdAt}
 
 	mq.On("CreateNotification", mock.Anything, sqlc.CreateNotificationParams{
 		UserID:  uid,
-		Type:    "status",
+		Type:    string(entity.Status),
 		Message: "test",
 	}).Return(out, nil)
 
 	saved, err := repo.Create(context.Background(), input)
 	require.NoError(t, err)
 	require.Equal(t, uid, saved.UserID)
-	require.Equal(t, "status", saved.Type)
+	require.Equal(t, entity.Status, saved.Type)
 	require.Equal(t, "test", saved.Message)
 	require.WithinDuration(t, createdAt, saved.CreatedAt, time.Second)
 
@@ -59,11 +59,11 @@ func TestNotificationRepositoryCountInTimeWindow(t *testing.T) {
 
 	mq.On("CountNotificationsInTimeWindow", mock.Anything, sqlc.CountNotificationsInTimeWindowParams{
 		UserID:    uid,
-		Type:      "status",
+		Type:      string(entity.Status),
 		CreatedAt: since,
 	}).Return(int64(42), nil)
 
-	count, err := repo.CountInTimeWindow(context.Background(), uid, "status", since)
+	count, err := repo.CountInTimeWindow(context.Background(), uid, entity.Status, since)
 	require.NoError(t, err)
 	require.Equal(t, 42, count)
 

@@ -10,6 +10,6 @@ import (
 
 func TestFakeGatewaySendNoError(t *testing.T) {
 	g := NewFakeGateway()
-	n := entity.Notification{ID: uuid.New(), UserID: uuid.New(), Type: "email", Message: "hello"}
+	n := entity.Notification{ID: uuid.New(), UserID: uuid.New(), Type: entity.Status, Message: "hello"}
 	require.NoError(t, g.Send(n))
 }

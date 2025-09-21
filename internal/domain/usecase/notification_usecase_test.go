@@ -24,7 +24,7 @@ func (m *MockRepo) Create(ctx context.Context, n entity.Notification) (entity.No
 	return args.Get(0).(entity.Notification), args.Error(1)
 }
 
-func (m *MockRepo) CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType string, since time.Time) (int, error) {
+func (m *MockRepo) CountInTimeWindow(ctx context.Context, userID uuid.UUID, notifType entity.NotificationType, since time.Time) (int, error) {
 	args := m.Called(ctx, userID, notifType, since)
 	return args.Get(0).(int), args.Error(1)
 }
@@ -43,18 +43,18 @@ func TestSendNotificationSuccess(t *testing.T) {
 	gw := new(MockGateway)
 	userID := uuid.New()
 
-	repo.On("CountInTimeWindow", mock.Anything, userID, "status", mock.AnythingOfType("time.Time")).Return(0, nil)
-	created := entity.Notification{UserID: userID, Type: "status", Message: "hello"}
+	repo.On("CountInTimeWindow", mock.Anything, userID, entity.Status, mock.AnythingOfType("time.Time")).Return(0, nil)
+	created := entity.Notification{UserID: userID, Type: entity.Status, Message: "hello"}
 	repo.On("Create", mock.Anything, mock.AnythingOfType("entity.Notification")).Return(created, nil)
 	gw.On("Send", mock.MatchedBy(func(n entity.Notification) bool {
-		return n.UserID == userID && n.Type == "status" && n.Message == "hello"
+		return n.UserID == userID && n.Type == entity.Status && n.Message == "hello"
 	})).Return(nil)
 
 	svc := usecase.NewNotificationUseCase(repo, gw, entity.DefaultRateLimits)
 
 	err := svc.Send(context.Background(), entity.Notification{
 		UserID:  userID,
-		Type:    "status",
+		Type:    entity.Status,
 		Message: "hello",
 	})
 
@@ -68,13 +68,13 @@ func TestNotificationRateLimitExceeded(t *testing.T) {
 	gw := new(MockGateway)
 	userID := uuid.New()
 
-	repo.On("CountInTimeWindow", mock.Anything, userID, "status", mock.Anything).Return(2, nil)
+	repo.On("CountInTimeWindow", mock.Anything, userID, entity.Status, mock.Anything).Return(2, nil)
 
 	svc := usecase.NewNotificationUseCase(repo, gw, entity.DefaultRateLimits)
 
 	err := svc.Send(context.Background(), entity.Notification{
 		UserID:  userID,
-		Type:    "status",
+		Type:    entity.Status,
 		Message: "hello",
 	})
 
@@ -89,9 +89,9 @@ func TestSendNotificationGatewayError(t *testing.T) {
 	gw := new(MockGateway)
 	userID := uuid.New()
 
-	repo.On("CountInTimeWindow", mock.Anything, userID, "status", mock.Anything).Return(0, nil)
+	repo.On("CountInTimeWindow", mock.Anything, userID, entity.Status, mock.Anything).Return(0, nil)
 
-	created := entity.Notification{UserID: userID, Type: "status", Message: "hello"}
+	created := entity.Notification{UserID: userID, Type: entity.Status, Message: "hello"}
 	repo.On("Create", mock.Anything, mock.AnythingOfType("entity.Notification")).Return(created, nil)
 
 	gw.On("Send", created).Return(errors.New("gateway down"))
@@ -100,7 +100,7 @@ func TestSendNotificationGatewayError(t *testing.T) {
 
 	err := svc.Send(context.Background(), entity.Notification{
 		UserID:  userID,
-		Type:    "status",
+		Type:    entity.Status,
 		Message: "hello",
 	})
 
